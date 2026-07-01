@@ -1,3 +1,5 @@
+import { CreateUserDto } from './dtos/create-user.dto';
+
 export class UsersService{
     
     users : {
@@ -15,11 +17,17 @@ export class UsersService{
         {name:'arafat',age:21,gender:'male',isMarried:true,id:5}
     ]
 
-    getAllUsers(name?: string, gender?: string) {
-        return this.users.filter(user => 
+    getAllUsers(name?: string, gender?: string, limit?: number, page?: number) {
+        let filteredUsers = this.users.filter(user => 
             (!name || user.name === name) && 
             (!gender || user.gender === gender)
         );
+
+        if (limit && page) {
+            const offset = (page - 1) * limit;
+            filteredUsers = filteredUsers.slice(offset, offset + limit);
+        }
+        return filteredUsers;
     }
 
     getSingleUser(id: number,) {
@@ -29,14 +37,7 @@ export class UsersService{
     }
 
 
-    createUsers(user:{
-        name:string;    
-        age:number;
-        gender:string;
-        isMarried:boolean;
-        id:number;
-
-    }){
+    createUsers(user: CreateUserDto & { id: number }){
         this.users.push(user);
         return this.users;
     }
