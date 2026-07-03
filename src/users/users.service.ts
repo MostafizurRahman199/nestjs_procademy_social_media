@@ -8,13 +8,14 @@ export class UsersService{
         gender:string;
         isMarried:boolean;
         id:number;
+        email:string;
 
     }[]= [
-        {name:'mostafiz',age:24,gender:'male',isMarried:false,id:1},
-        {name:'fahim',age:23,gender:'male',isMarried:false,id:2},
-        {name:'rakib',age:24,gender:'male',isMarried:true,id:3},
-        {name:'anik',age:22,gender:'male',isMarried:false,id:4},
-        {name:'arafat',age:21,gender:'male',isMarried:true,id:5}
+        {name:'mostafiz',age:24,gender:'male',isMarried:false,id:1, email:'[EMAIL_ADDRESS]'},
+        {name:'fahim',age:23,gender:'male',isMarried:false,id:2,email:'[EMAIL_ADDRESS]'},
+        {name:'rakib',age:24,gender:'male',isMarried:true,id:3,email:'[EMAIL_ADDRESS]'},
+        {name:'anik',age:22,gender:'male',isMarried:false,id:4,email:'[EMAIL_ADDRESS]'},
+        {name:'arafat',age:21,gender:'male',isMarried:true,id:5,email:'[EMAIL_ADDRESS]'}
     ]
 
     getAllUsers(name?: string, gender?: string, limit?: number, page?: number) {
