@@ -10,7 +10,7 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
 
-    @Get('{:isMarried}')
+    @Get(['', ':isMarried'])
     getUsers(
         @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
         @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

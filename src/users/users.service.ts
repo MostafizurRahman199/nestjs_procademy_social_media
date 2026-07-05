@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { GetUserParamDto } from './dtos/get-user-param.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UsersService{
+
+    constructor(@Inject(forwardRef(()=>AuthService)) private readonly authService:AuthService){}
     
     users : {
         name:string;
@@ -23,6 +26,11 @@ export class UsersService{
     ]
 
     getAllUsers(name?: string, gender?: string, limit?: number, page?: number, params?: GetUserParamDto) {
+
+        if(!this.authService.isAuthenticated){
+            return 'You are not authenticated';
+        }
+        
         let filteredUsers = this.users.filter(user => 
             (!name || user.name === name) && 
             (!gender || user.gender === gender) &&
