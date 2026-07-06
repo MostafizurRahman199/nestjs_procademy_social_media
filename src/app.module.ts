@@ -7,6 +7,7 @@ import { UserModule } from './users/users.module';
 import { TweetModule } from './tweet/tweet.module';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -18,7 +19,6 @@ import { User } from './users/user.entity';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        entities:[User],
         url: configService.get<string>('database_url'),
         autoLoadEntities: true,
         synchronize: true,
@@ -28,6 +28,7 @@ import { User } from './users/user.entity';
     UserModule,
     TweetModule,
     AuthModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

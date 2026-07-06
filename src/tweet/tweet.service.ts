@@ -25,13 +25,6 @@ export class TweetService {
 
    getUserTweet(userId:number){
     const user = this.usersService.getSingleUser(userId);
-    if(!user){
-        return 'User not found';
-    }
-    const tweet = this.tweets.filter(tweet=> tweet.userId === userId);
-    return {
-        userName:user.name,
-        tweets:tweet
-    };
+   
    }
 }

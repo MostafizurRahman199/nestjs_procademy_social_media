@@ -9,17 +9,8 @@ export class AuthService {
     isAuthenticated = false;
 
     login(email:string, userId:string){
-        const user = this.usersService.getSingleUser(parseInt(userId));
-        if(!user){
-            return 'Invalid Credentials';
-        }
-        if(user.email === email){
-            this.isAuthenticated = true;  
-            return 'My_token';
-        }
-        else{
-            return 'Invalid Credentials';
-        }
+       
+        
     }   
     
 }

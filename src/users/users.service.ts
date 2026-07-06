@@ -1,78 +1,82 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { GetUserParamDto } from './dtos/get-user-param.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { AuthService } from 'src/auth/auth.service';
+import { User } from './user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+
 
 @Injectable()
 export class UsersService{
 
-    constructor(@Inject(forwardRef(()=>AuthService)) private readonly authService:AuthService){}
+    constructor(
+        @InjectRepository(User)
+        private userRepository:Repository<User>)
+    {}
     
-    users : {
-        name:string;
-        age:number;
-        gender:string;
-        isMarried:boolean;
-        id:number;
-        email:string;
 
-    }[]= [
-        {name:'mostafiz',age:24,gender:'male',isMarried:false,id:1, email:'mostafiz@gmail.com'},
-        {name:'fahim',age:23,gender:'male',isMarried:false,id:2,email:'fahim@gmail.com'},
-        {name:'rakib',age:24,gender:'male',isMarried:true,id:3,email:'[EMAIL_ADDRESS]'},
-        {name:'anik',age:22,gender:'male',isMarried:false,id:4,email:'[EMAIL_ADDRESS]'},
-        {name:'arafat',age:21,gender:'male',isMarried:true,id:5,email:'[EMAIL_ADDRESS]'}
-    ]
+    public async getAllUsers( ) {
+        const users = await this.userRepository.find();
+        return users;
+    }
 
-    getAllUsers(name?: string, gender?: string, limit?: number, page?: number, params?: GetUserParamDto) {
+    public async getSingleUser(id: number,) {
+      const user = await this.userRepository.findOne({
+        where: {id}
+      });
 
-        if(!this.authService.isAuthenticated){
-            return 'You are not authenticated';
+      if(!user){
+        throw new BadRequestException('User not found');
+      }
+      return user;
+    }
+
+    public async getUserByEmail(email: string) {
+      const user = await this.userRepository.findOne({
+        where: { email }
+      });
+
+      if(!user){
+        throw new BadRequestException('User not found');
+      }
+      return user;
+    }
+
+
+    public async createUsers(userDto: CreateUserDto) {
+        // validate user does already exits by email or username
+        const existingUser = await this.userRepository.findOne({
+            where: [
+                { email: userDto.email },
+                { username: userDto.username }
+            ],
+        });
+
+        // handle error
+        if (existingUser) {
+            throw new BadRequestException('User with this email or username already exists');
         }
+
+        // if not create user and meaningfull reply
+        // Using cascade: true on the User entity allows us to create the profile simultaneously
+        const newUser = this.userRepository.create({
+            ...userDto,
+            profile: userDto.profile || {}
+        });
+        await this.userRepository.save(newUser);
         
-        let filteredUsers = this.users.filter(user => 
-            (!name || user.name === name) && 
-            (!gender || user.gender === gender) &&
-            (params?.isMarried === undefined || user.isMarried === params?.isMarried)
-        );
-
-        if (limit && page) {
-            const offset = (page - 1) * limit;
-            filteredUsers = filteredUsers.slice(offset, offset + limit);
-        }
-        return filteredUsers;
-    }
-
-    getSingleUser(id: number,) {
-        return this.users.find(user => 
-            user.id === id
-        );
-    }
-
-
-    createUsers(user: CreateUserDto & { id: number }){
-        // this.users.push(user);
-        return this.users;
+        return {
+            message: 'User created successfully',
+            user: newUser,
+        };
     }
 
     updateUser(id: number, updateUserDto: UpdateUserDto) {
-        const userIndex = this.users.findIndex(user => user.id === id);
-        if (userIndex > -1) {
-            this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
-            return this.users[userIndex];
-        }
-        return 'User not found';
+        
     }
 
     deleteUser(id:number){
-        const user = this.users.find(user=> user.id === id);
-        if(user){
-            this.users = this.users.filter(user=> user.id !== id);
-            return this.users;
-        }else{
-            return 'User not found';
-        }
+       
     }
 
 
