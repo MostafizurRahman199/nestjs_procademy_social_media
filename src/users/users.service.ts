@@ -106,8 +106,19 @@ export class UsersService{
 
     
 
-    deleteUser(id:number){
-       
+    async deleteUser(id: number) {
+        const user = await this.userRepository.findOne({
+            where: { id },
+            relations: { profile: true }
+        });
+
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+
+        await this.userRepository.remove(user);
+
+        return { message: 'User deleted successfully' };
     }
 
 
