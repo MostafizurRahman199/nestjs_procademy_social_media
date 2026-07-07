@@ -1,4 +1,19 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { ProfileService } from './profile.service';
 
 @Controller('profile')
-export class ProfileController {}
+export class ProfileController {
+
+    constructor(private readonly profileService:ProfileService){}
+
+
+    
+    @Get()
+    getAllProfiles(){
+        return this.profileService.getAllProfiles();
+    }
+
+    
+
+
+}

@@ -15,10 +15,21 @@ export class UsersService{
     {}
     
 
+
+
     public async getAllUsers( ) {
-        const users = await this.userRepository.find();
+        const users = await this.userRepository.find({
+          relations:{
+            profile:true  
+          }
+        });
         return users;
     }
+
+
+
+
+
 
     public async getSingleUser(id: number,) {
       const user = await this.userRepository.findOne({
@@ -31,6 +42,12 @@ export class UsersService{
       return user;
     }
 
+
+
+
+
+
+
     public async getUserByEmail(email: string) {
       const user = await this.userRepository.findOne({
         where: { email }
@@ -41,6 +58,10 @@ export class UsersService{
       }
       return user;
     }
+
+
+
+
 
 
     public async createUsers(userDto: CreateUserDto) {
@@ -71,9 +92,19 @@ export class UsersService{
         };
     }
 
+
+
+
+
+
     updateUser(id: number, updateUserDto: UpdateUserDto) {
         
     }
+
+
+
+
+    
 
     deleteUser(id:number){
        
