@@ -1,5 +1,8 @@
 import { Profile } from 'src/profile/profile.entity';
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Tweet } from 'src/tweet/tweet.entity';
+import { Reaction } from 'src/tweet/reaction.entity';
+import { Comment } from 'src/tweet/comment.entity';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -37,6 +40,15 @@ export class User {
   @OneToOne(()=>Profile, (profile) => profile.user, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn({name:'profileId'})
   profile?:Profile;
+
+  @OneToMany(() => Tweet, (tweet) => tweet.user)
+  tweets: Tweet[];
+
+  @OneToMany(() => Reaction, (reaction) => reaction.user)
+  reactions: Reaction[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 
 
   @CreateDateColumn()
