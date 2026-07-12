@@ -22,7 +22,7 @@ import { ProfileModule } from './profile/profile.module';
         url: configService.get<string>('database_url'),
         autoLoadEntities: true,
         synchronize: true,
-        ssl: { rejectUnauthorized: false },
+        ssl: false,
       }),
     }), 
     UserModule,

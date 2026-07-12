@@ -1,30 +1,60 @@
-import { Injectable } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Tweet } from './tweet.entity';
+import { CreateTweetDto } from './dto/create-tweet.dto';
+import { UpdateTweetDto } from './dto/update-tweet.dto';
 
 @Injectable()
 export class TweetService {
+  constructor(
+    @InjectRepository(Tweet)
+    private readonly tweetRepository: Repository<Tweet>,
+  ) {}
 
+  async createTweet(userId: number, createTweetDto: CreateTweetDto): Promise<Tweet> {
+    const tweet = this.tweetRepository.create({
+      ...createTweetDto,
+      userId,
+    });
+    return this.tweetRepository.save(tweet);
+  }
 
-    constructor (private readonly usersService:UsersService){}
+  async getAllTweets(): Promise<Tweet[]> {
+    return this.tweetRepository.find({
+      relations: { user: true, reactions: true, comments: true },
+      order: { createdAt: 'DESC' },
+    });
+  }
 
-
-   tweets:{text:string, date:Date, userId:number}[] = [
-    {
-        text:'Hello everyone', date:new Date('2024-12-22'), userId:1
-    },
-     {
-        text:'Hello everyone 2', date:new Date('2024-12-22'), userId:1
-    },
-    {
-        text:'Hello everyone', date:new Date('2024-12-22'), userId:2
-    },
-    {
-        text:'Hello everyone', date:new Date('2025-12-22'), userId:3
+  async getSingleTweet(id: number): Promise<Tweet> {
+    const tweet = await this.tweetRepository.findOne({
+      where: { id },
+      relations: { user: true, reactions: true, comments: true },
+    });
+    if (!tweet) {
+      throw new NotFoundException(`Tweet with ID ${id} not found`);
     }
-   ]
+    return tweet;
+  }
 
-   getUserTweet(userId:number){
-    const user = this.usersService.getSingleUser(userId);
-   
-   }
+  async getUserTweets(userId: number): Promise<Tweet[]> {
+    return this.tweetRepository.find({
+      where: { userId },
+      relations: { user: true, reactions: true, comments: true },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async updateTweet(id: number, updateTweetDto: UpdateTweetDto): Promise<Tweet> {
+    const tweet = await this.getSingleTweet(id);
+    Object.assign(tweet, updateTweetDto);
+    return this.tweetRepository.save(tweet);
+  }
+
+  async deleteTweet(id: number): Promise<void> {
+    const tweet = await this.getSingleTweet(id);
+    await this.tweetRepository.remove(tweet);
+  }
 }
+
