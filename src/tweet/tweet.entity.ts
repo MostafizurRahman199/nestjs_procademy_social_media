@@ -4,6 +4,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -12,6 +14,7 @@ import {
 import { User } from '../users/user.entity';
 import { Reaction } from './reaction.entity';
 import { Comment } from './comment.entity';
+import { Hashtag } from '../hashtags/hashtag.entity';
 
 @Entity()
 export class Tweet {
@@ -43,6 +46,19 @@ export class Tweet {
 
   @OneToMany(() => Comment, (comment) => comment.tweet)
   comments: Comment[];
+
+  /**
+   * Owning side of the Tweet <-> Hashtag many-to-many.
+   * JoinTable creates the 'tweet_hashtags' junction table with
+   * tweetId and hashtagId foreign key columns.
+   */
+  @ManyToMany(() => Hashtag, (hashtag) => hashtag.tweets, { cascade: true })
+  @JoinTable({
+    name: 'tweet_hashtags',
+    joinColumn: { name: 'tweetId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'hashtagId', referencedColumnName: 'id' },
+  })
+  hashtags: Hashtag[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { TweetService } from './tweet.service';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
@@ -7,8 +17,7 @@ import { UpdateTweetDto } from './dto/update-tweet.dto';
 export class TweetController {
   constructor(private readonly tweetService: TweetService) {}
 
-  // NOTE: For now, taking userId from param to test without Authentication guards.
-  // In a real scenario, you'd get this from @Req() req -> req.user.id
+
   @Post('user/:userId')
   public createTweet(
     @Param('userId', ParseIntPipe) userId: number,
@@ -17,32 +26,58 @@ export class TweetController {
     return this.tweetService.createTweet(userId, createTweetDto);
   }
 
+
+
+
   @Get()
-  public getAllTweets() {
-    return this.tweetService.getAllTweets();
+  public getAllTweets(
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ) {
+    return this.tweetService.getAllTweets(page, limit);
   }
 
+
+
+
   @Get('user/:userId')
-  public getUserTweets(@Param('userId', ParseIntPipe) userId: number) {
-    return this.tweetService.getUserTweets(userId);
+  public getUserTweets(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ) {
+    return this.tweetService.getUserTweets(userId, page, limit);
   }
+
+
 
   @Get(':id')
   public getSingleTweet(@Param('id', ParseIntPipe) id: number) {
     return this.tweetService.getSingleTweet(id);
   }
 
-  @Patch(':id')
+
+
+  // NOTE: requestingUserId is taken from param temporarily — replace with req.user.id in production.
+  @Patch(':id/user/:userId')
   public updateTweet(
     @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() updateTweetDto: UpdateTweetDto,
   ) {
-    return this.tweetService.updateTweet(id, updateTweetDto);
+    return this.tweetService.updateTweet(id, userId, updateTweetDto);
   }
 
-  @Delete(':id')
-  public deleteTweet(@Param('id', ParseIntPipe) id: number) {
-    return this.tweetService.deleteTweet(id);
+
+
+  // NOTE: requestingUserId is taken from param temporarily — replace with req.user.id in production.
+  @Delete(':id/user/:userId')
+  public deleteTweet(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    return this.tweetService.deleteTweet(id, userId);
   }
+
+  
 }
-
