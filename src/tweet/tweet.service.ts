@@ -5,7 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Tweet } from './tweet.entity';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
@@ -14,14 +15,13 @@ import { HashtagsService } from '../hashtags/hashtags.service';
 
 @Injectable()
 export class TweetService {
+  
   constructor(
     @InjectRepository(Tweet)
     private readonly tweetRepository: Repository<Tweet>,
     private readonly usersService: UsersService,
     private readonly hashtagsService: HashtagsService,
   ) {}
-
-
 
 
 
@@ -44,10 +44,6 @@ export class TweetService {
     return this.tweetRepository.save(tweet);
   }
 
-
-
-
-
   async getAllTweets(page = 1, limit = 20): Promise<Tweet[]> {
     // Corner case: unbounded fetch can crash under load — enforce pagination
     const safePage = Math.max(1, page);
@@ -61,10 +57,6 @@ export class TweetService {
     });
   }
 
-
-
-
-
   async getSingleTweet(id: number): Promise<Tweet> {
     const tweet = await this.tweetRepository.findOne({
       where: { id },
@@ -75,10 +67,6 @@ export class TweetService {
     }
     return tweet;
   }
-
-
-
-
 
   async getUserTweets(
     userId: number,
@@ -144,10 +132,6 @@ export class TweetService {
     return [...new Set(matches.map((tag) => tag.substring(1)))];
   }
 
-
-
-
-  
   async deleteTweet(id: number, requestingUserId: number): Promise<void> {
     const tweet = await this.getSingleTweet(id);
 
@@ -161,5 +145,16 @@ export class TweetService {
     // Use softRemove to honour the @DeleteDateColumn on the entity
     // instead of hard-deleting and making soft-delete useless
     await this.tweetRepository.softRemove(tweet);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async handleCronPurgeDeletedTweets() {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    // Hard delete tweets where deletedAt is older than 3 days
+    await this.tweetRepository.delete({
+      deletedAt: LessThan(threeDaysAgo),
+    });
   }
 }

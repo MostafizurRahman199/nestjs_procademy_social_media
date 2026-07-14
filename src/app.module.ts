@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './users/users.module';
@@ -26,6 +27,7 @@ import { HashtagsModule } from './hashtags/hashtags.module';
         ssl: false,
       }),
     }), 
+    ScheduleModule.forRoot(),
     UserModule,
     TweetModule,
     AuthModule,
