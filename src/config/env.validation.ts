@@ -15,6 +15,9 @@ class EnvironmentVariables {
 
   @IsString()
   database_url: string;
+
+  @IsString()
+  SHARED_SECRET: string;
 }
 
 export function validate(config: Record<string, any>) {
