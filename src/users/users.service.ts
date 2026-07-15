@@ -27,10 +27,6 @@ export class UsersService{
     }
 
 
-
-
-
-
     public async getSingleUser(id: number,) {
       const user = await this.userRepository.findOne({
         where: {id}
@@ -44,10 +40,6 @@ export class UsersService{
 
 
 
-
-
-
-
     public async getUserByEmail(email: string) {
       const user = await this.userRepository.findOne({
         where: { email }
@@ -58,10 +50,6 @@ export class UsersService{
       }
       return user;
     }
-
-
-
-
 
 
     public async createUsers(userDto: CreateUserDto) {
@@ -91,9 +79,6 @@ export class UsersService{
             user: newUser,
         };
     }
-
-
-
 
 
 
@@ -144,9 +129,6 @@ export class UsersService{
     }
 
 
-
-
-    
 
     async deleteUser(id: number) {
         const user = await this.userRepository.findOne({
