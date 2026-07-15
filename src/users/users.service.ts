@@ -2,7 +2,7 @@ import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/com
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './user.entity';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 
@@ -97,8 +97,50 @@ export class UsersService{
 
 
 
-    updateUser(id: number, updateUserDto: UpdateUserDto) {
-        
+    public async updateUser(id: number, updateUserDto: UpdateUserDto) {
+        const user = await this.userRepository.findOne({
+            where: { id },
+            relations: { profile: true }
+        });
+
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+
+        // Check if email or username is already taken by another user
+        if (updateUserDto.email || updateUserDto.username) {
+            const conditions: FindOptionsWhere<User>[] = [];
+            if (updateUserDto.email) conditions.push({ email: updateUserDto.email });
+            if (updateUserDto.username) conditions.push({ username: updateUserDto.username });
+            
+            const existingUser = await this.userRepository.findOne({
+                where: conditions
+            });
+            
+            if (existingUser && existingUser.id !== id) {
+                throw new BadRequestException('User with this email or username already exists');
+            }
+        }
+
+        // Extract profile and merge it separately if it exists
+        const { profile, ...restOfUpdate } = updateUserDto;
+
+        if (profile) {
+            user.profile = {
+                ...user.profile,
+                ...profile
+            } as any;
+        }
+
+        // Merge the rest of the user properties
+        Object.assign(user, restOfUpdate);
+
+        await this.userRepository.save(user);
+
+        return {
+            message: 'User updated successfully',
+            user,
+        };
     }
 
 
