@@ -1,4 +1,4 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './user.entity';
@@ -33,7 +33,7 @@ export class UsersService{
       });
 
       if(!user){
-        throw new BadRequestException('User not found');
+        throw new NotFoundException('User not found');
       }
       return user;
     }
@@ -46,7 +46,7 @@ export class UsersService{
       });
 
       if(!user){
-        throw new BadRequestException('User not found');
+        throw new NotFoundException('User not found');
       }
       return user;
     }
@@ -89,7 +89,7 @@ export class UsersService{
         });
 
         if (!user) {
-            throw new BadRequestException('User not found');
+            throw new NotFoundException('User not found');
         }
 
         // Check if email or username is already taken by another user
@@ -137,7 +137,7 @@ export class UsersService{
         });
 
         if (!user) {
-            throw new BadRequestException('User not found');
+            throw new NotFoundException('User not found');
         }
 
         await this.userRepository.remove(user);

@@ -13,6 +13,9 @@ import { HashtagsModule } from './hashtags/hashtags.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
   imports: [
@@ -40,6 +43,16 @@ import { validate } from './config/env.validation';
     HashtagsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
