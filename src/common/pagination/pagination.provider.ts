@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import type { Request } from 'express';
 import { FindManyOptions, ObjectLiteral, Repository } from 'typeorm';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedResult } from './interfaces/pagination.interface';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class PaginationProvider {
+  constructor(@Inject(REQUEST) private readonly request: Request) {}
 
   /**
    * A generic pagination method that works with ANY TypeORM entity.
@@ -21,14 +24,13 @@ export class PaginationProvider {
     paginationQuery: PaginationQueryDto,
     options?: FindManyOptions<T>,
   ): Promise<PaginatedResult<T>> {
-
+    
     // 1. Extract page and limit from the query, providing safe defaults if they are missing.
     const { page = 1, limit = 20 } = paginationQuery;
 
     // 2. Ensure the page and limit are safe numbers to prevent database crashes.
     // - Math.max(1, page) ensures we never request page 0 or negative pages.
     const safePage = Math.max(1, page);
-    
     // - Math.min(...) ensures we cap the limit at a maximum of 100 items per request, preventing huge data loads.
     const safeLimit = Math.min(Math.max(1, limit), 100);
 
@@ -50,7 +52,29 @@ export class PaginationProvider {
     // There is a next page if our current page is less than the total page count
     const hasNextPage = safePage < pageCount;
 
-    // 5. Return the standardized structured response
+    // 5. Build pagination links
+    const protocol = this.request.protocol;
+    const host = this.request.get('Host'); // Or this.request.headers.host
+    const path = this.request.path;
+    const baseUrl = `${protocol}://${host}${path}`;
+
+    // Helper to keep existing query parameters while updating page/limit
+    const createUrl = (p: number) => {
+      const searchParams = new URLSearchParams(this.request.query as any);
+      searchParams.set('page', p.toString());
+      searchParams.set('limit', safeLimit.toString());
+      return `${baseUrl}?${searchParams.toString()}`;
+    };
+
+    const links = {
+      first: createUrl(1),
+      previous: hasPreviousPage ? createUrl(safePage - 1) : '',
+      current: createUrl(safePage),
+      next: hasNextPage ? createUrl(safePage + 1) : '',
+      last: createUrl(pageCount > 0 ? pageCount : 1),
+    };
+
+    // 6. Return the standardized structured response
     return {
       data,
       meta: {
@@ -61,6 +85,7 @@ export class PaginationProvider {
         hasPreviousPage,
         hasNextPage, 
       },
+      links,
     };
   }
 }
