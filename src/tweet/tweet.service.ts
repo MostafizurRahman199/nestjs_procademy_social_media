@@ -13,6 +13,8 @@ import { UpdateTweetDto } from './dto/update-tweet.dto';
 import { GetTweetsQueryDto } from './dto/get-tweets-query.dto';
 import { UsersService } from '../users/users.service';
 import { HashtagsService } from '../hashtags/hashtags.service';
+import { PaginationProvider } from '../common/pagination/pagination.provider';
+import { PaginatedResult } from '../common/pagination/interfaces/pagination.interface';
 
 @Injectable()
 export class TweetService {
@@ -22,6 +24,7 @@ export class TweetService {
     private readonly tweetRepository: Repository<Tweet>,
     private readonly usersService: UsersService,
     private readonly hashtagsService: HashtagsService,
+    private readonly paginationProvider: PaginationProvider,
   ) {}
 
 
@@ -45,11 +48,8 @@ export class TweetService {
     return this.tweetRepository.save(tweet);
   }
 
-  async getAllTweets(query: GetTweetsQueryDto): Promise<Tweet[]> {
-    const { page = 1, limit = 20, startDate, endDate } = query || {};
-    // Corner case: unbounded fetch can crash under load — enforce pagination
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.min(Math.max(1, limit), 100); // cap at 100 per request
+  async getAllTweets(query: GetTweetsQueryDto): Promise<PaginatedResult<Tweet>> {
+    const { startDate, endDate, ...paginationQuery } = query || {};
 
     const where: any = {};
     if (startDate && endDate) {
@@ -60,13 +60,15 @@ export class TweetService {
       where.createdAt = LessThanOrEqual(new Date(endDate));
     }
 
-    return this.tweetRepository.find({
-      where,
-      relations: { user: true, reactions: true, comments: true, hashtags: true },
-      order: { createdAt: 'DESC' },
-      skip: (safePage - 1) * safeLimit,
-      take: safeLimit,
-    });
+    return this.paginationProvider.paginate<Tweet>(
+      this.tweetRepository,
+      paginationQuery,
+      {
+        where,
+        relations: { user: true, reactions: true, comments: true, hashtags: true },
+        order: { createdAt: 'DESC' },
+      },
+    );
   }
 
   async getSingleTweet(id: number): Promise<Tweet> {
@@ -84,17 +86,19 @@ export class TweetService {
     userId: number,
     page = 1,
     limit = 20,
-  ): Promise<Tweet[]> {
+  ): Promise<PaginatedResult<Tweet>> {
   
     await this.usersService.getSingleUser(userId);
 
-    return this.tweetRepository.find({
-      where: { userId },
-      relations: { user: true, reactions: true, comments: true, hashtags: true },
-      order: { createdAt: 'DESC' },
-      skip: (Math.max(1, page) - 1) * Math.min(Math.max(1, limit), 100),
-      take: Math.min(Math.max(1, limit), 100),
-    });
+    return this.paginationProvider.paginate<Tweet>(
+      this.tweetRepository,
+      { page, limit },
+      {
+        where: { userId },
+        relations: { user: true, reactions: true, comments: true, hashtags: true },
+        order: { createdAt: 'DESC' },
+      },
+    );
   }
 
   async updateTweet(

@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
 import { ProfileModule } from './profile/profile.module';
 import { HashtagsModule } from './hashtags/hashtags.module';
+import { PaginationModule } from './common/pagination/pagination.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import { validate } from './config/env.validation';
@@ -41,6 +42,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     AuthModule,
     ProfileModule,
     HashtagsModule,
+    PaginationModule,
   ],
   controllers: [AppController],
   providers: [

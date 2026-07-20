@@ -4,6 +4,9 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { User } from './user.entity';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginationProvider } from '../common/pagination/pagination.provider';
+import { PaginationQueryDto } from '../common/pagination/dto/pagination-query.dto';
+import { PaginatedResult } from '../common/pagination/interfaces/pagination.interface';
 
 
 @Injectable()
@@ -11,19 +14,24 @@ export class UsersService{
 
     constructor(
         @InjectRepository(User)
-        private userRepository:Repository<User>)
+        private userRepository:Repository<User>,
+        private paginationProvider: PaginationProvider
+    )
     {}
     
 
 
 
-    public async getAllUsers( ) {
-        const users = await this.userRepository.find({
-          relations:{
-            profile:true  
+    public async getAllUsers(query: PaginationQueryDto): Promise<PaginatedResult<User>> {
+        return this.paginationProvider.paginate<User>(
+          this.userRepository,
+          query,
+          {
+            relations: {
+              profile: true  
+            }
           }
-        });
-        return users;
+        );
     }
 
 

@@ -3,6 +3,7 @@ import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { GetUserParamDto } from "./dtos/get-user-param.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
+import { PaginationQueryDto } from "../common/pagination/dto/pagination-query.dto";
 
 @Controller('users')
 export class UsersController {
@@ -11,8 +12,8 @@ export class UsersController {
 
 
     @Get()
-    getUsers() {
-        return this.usersService.getAllUsers();
+    getUsers(@Query() query: PaginationQueryDto) {
+        return this.usersService.getAllUsers(query);
     }
 
     @Get(':id')
