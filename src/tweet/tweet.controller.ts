@@ -12,6 +12,7 @@ import {
 import { TweetService } from './tweet.service';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
+import { GetTweetsQueryDto } from './dto/get-tweets-query.dto';
 
 @Controller('tweet')
 export class TweetController {
@@ -30,11 +31,8 @@ export class TweetController {
 
 
   @Get()
-  public getAllTweets(
-    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-  ) {
-    return this.tweetService.getAllTweets(page, limit);
+  public getAllTweets(@Query() query: GetTweetsQueryDto) {
+    return this.tweetService.getAllTweets(query);
   }
 
 

@@ -13,9 +13,6 @@ export class ProfileService {
     ){}
 
 
-
-
-
     async getAllProfiles(){
         return await this.profileRepository.find({
             relations:{
@@ -23,8 +20,6 @@ export class ProfileService {
             }
         });
     }
-
-
 
 
 
@@ -42,9 +37,6 @@ export class ProfileService {
             data: updatedProfile 
         };
     }
-
-
-
 
 
 

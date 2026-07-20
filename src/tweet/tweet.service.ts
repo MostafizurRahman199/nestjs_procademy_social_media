@@ -5,11 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { Between, LessThan, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Tweet } from './tweet.entity';
 import { CreateTweetDto } from './dto/create-tweet.dto';
 import { UpdateTweetDto } from './dto/update-tweet.dto';
+import { GetTweetsQueryDto } from './dto/get-tweets-query.dto';
 import { UsersService } from '../users/users.service';
 import { HashtagsService } from '../hashtags/hashtags.service';
 
@@ -44,12 +45,23 @@ export class TweetService {
     return this.tweetRepository.save(tweet);
   }
 
-  async getAllTweets(page = 1, limit = 20): Promise<Tweet[]> {
+  async getAllTweets(query: GetTweetsQueryDto): Promise<Tweet[]> {
+    const { page = 1, limit = 20, startDate, endDate } = query || {};
     // Corner case: unbounded fetch can crash under load — enforce pagination
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100); // cap at 100 per request
 
+    const where: any = {};
+    if (startDate && endDate) {
+      where.createdAt = Between(new Date(startDate), new Date(endDate));
+    } else if (startDate) {
+      where.createdAt = MoreThanOrEqual(new Date(startDate));
+    } else if (endDate) {
+      where.createdAt = LessThanOrEqual(new Date(endDate));
+    }
+
     return this.tweetRepository.find({
+      where,
       relations: { user: true, reactions: true, comments: true, hashtags: true },
       order: { createdAt: 'DESC' },
       skip: (safePage - 1) * safeLimit,
